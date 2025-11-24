@@ -30,17 +30,28 @@
 /* -- (none) -- */
 
 /*--------------------------------------------------------------------------*/
-/* INCLUDES FOR SCHEDULER */
+/* INCLUDES FOR SCHEDULER AND INTERRUPTS */
 /*--------------------------------------------------------------------------*/
 
 #include "scheduler.H"
 #include "system.H"
+#include "interrupts.H"
 
 /*--------------------------------------------------------------------------*/
 /* N o n B l o c k i n g D i s k  */
 /*--------------------------------------------------------------------------*/
 
-class NonBlockingDisk : public SimpleDisk {
+/* BONUS OPTION 3: Interrupt-Driven I/O Implementation
+ * 
+ * NonBlockingDisk now inherits from both SimpleDisk and InterruptHandler
+ * to support interrupt-driven disk operations using IRQ14.
+ * 
+ * Architecture:
+ * - Top-half: read()/write() issue commands and block threads
+ * - Bottom-half: handle_interrupt() wakes threads when disk is ready
+ * - Eliminates polling: threads are woken immediately when disk becomes ready
+ */
+class NonBlockingDisk : public SimpleDisk, public InterruptHandler {
 private:
   /* Blocked Thread Queue
    * This queue holds threads that are waiting for the disk to become ready.
@@ -57,15 +68,27 @@ private:
   BlockedThreadNode* blocked_queue_head;  /* Head of the blocked thread queue */
   BlockedThreadNode* blocked_queue_tail; /* Tail for efficient enqueue */
   
+  /* Flag to track if we're waiting for an interrupt */
+  bool waiting_for_interrupt;  /* True when a thread is blocked waiting for disk */
+  
 protected:
-  /* Override wait_while_busy() to eliminate busy-waiting.
-   * Instead of busy-looping, threads yield the CPU when the disk is busy
-   * and check again when they resume.
+  /* Override wait_while_busy() to use interrupt-driven approach.
+   * Threads block and wait for IRQ14 interrupt instead of polling.
    */
   virtual void wait_while_busy();
   
   /* Helper function to wake up the next waiting thread (if any) */
   void wake_next_blocked_thread();
+  
+public:
+  /* Interrupt Handler Implementation (BONUS OPTION 3) */
+  virtual void handle_interrupt(REGS * _regs);
+  /* This is called when IRQ14 (disk interrupt) occurs.
+   * When the disk becomes ready, this function:
+   * 1. Checks if disk is ready
+   * 2. Wakes up the waiting thread (if any)
+   * 3. Allows the thread to continue with data transfer
+   */
   
 public:
    NonBlockingDisk(unsigned int _size); 

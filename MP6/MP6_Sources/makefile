@@ -77,7 +77,7 @@ simple_timer.o: simple_timer.C simple_timer.H
 simple_disk.o: simple_disk.C simple_disk.H
 	$(GCC) $(GCC_OPTIONS) -c -o simple_disk.o simple_disk.C
 
-nonblocking_disk.o: nonblocking_disk.C nonblocking_disk.H simple_disk.H scheduler.H system.H
+nonblocking_disk.o: nonblocking_disk.C nonblocking_disk.H simple_disk.H scheduler.H system.H interrupts.H
 	$(GCC) $(GCC_OPTIONS) -c -o nonblocking_disk.o nonblocking_disk.C
 
 system.o: system.C simple_disk.H 
