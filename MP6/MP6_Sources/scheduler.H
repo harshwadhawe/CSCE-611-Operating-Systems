@@ -56,7 +56,23 @@
 
 class Scheduler {
 
-  /* The scheduler may need private members... */
+private:
+  /* FIFO Ready Queue Implementation
+   * We use a simple linked-list structure to maintain a queue of ready threads.
+   * The queue is implemented as a circular linked list for efficient enqueue/dequeue.
+   */
+  
+  /* Node structure for the ready queue */
+  struct QueueNode {
+    Thread* thread;           /* Pointer to the thread in this node */
+    QueueNode* next;          /* Pointer to the next node in the queue */
+    
+    QueueNode(Thread* t) : thread(t), next(nullptr) {}
+  };
+  
+  QueueNode* ready_queue_head;  /* Head of the ready queue (FIFO) */
+  QueueNode* ready_queue_tail;  /* Tail of the ready queue for O(1) enqueue */
+  int queue_size;              /* Number of threads in the ready queue */
   
 public:
 

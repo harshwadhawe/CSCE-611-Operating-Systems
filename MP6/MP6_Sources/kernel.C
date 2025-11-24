@@ -19,7 +19,7 @@
 
 /* -- COMMENT/UNCOMMENT THE FOLLOWING LINE TO EXCLUDE/INCLUDE SCHEDULER CODE */
 
-//#define _USES_SCHEDULER_
+#define _USES_SCHEDULER_
 /* This macro is defined when we want to force the code below to use
    a scheduler.
    Otherwise, no scheduler is used, and the threads pass control to each
@@ -51,7 +51,7 @@
 #include "scheduler.H"      /* WE WILL NEED A SCHEDULER WITH NonBlockingDisk */
 
 #include "simple_disk.H"    /* DISK DEVICE */
-							/* YOU MAY NEED TO INCLUDE nonblocking_disk.H */
+#include "nonblocking_disk.H"  /* Non-blocking disk implementation */
 
 #include "system.H"         /* SYSTEM COMPONENTS: SCHEDULER, MEMORY, DISK */
 
@@ -268,18 +268,20 @@ int main()
 	InterruptHandler::register_handler(0, &timer);
 	/* The Timer is implemented as an interrupt handler. */
 
-	/* -- DISK DEVICE -- */
-
-	System::DISK = new SimpleDisk(System::DISK_SIZE); // Replace this with commented code below when you are ready!
-
-	// #define _USES_SCHEDULER_
-	// // The NonBlockingDisk uses a scheduler.
-	// System::DISK = new NonBlockingDisk(System::DISK_SIZE);
-
-	/* -- SCHEDULER -- IF YOU HAVE ONE -- */
+	/* -- SCHEDULER -- MUST BE CREATED BEFORE DISK (NonBlockingDisk needs scheduler) -- */
 
 #ifdef _USES_SCHEDULER_
 	System::SCHEDULER = new Scheduler();
+#endif
+
+	/* -- DISK DEVICE -- */
+
+#ifdef _USES_SCHEDULER_
+	// The NonBlockingDisk uses a scheduler to avoid busy-waiting.
+	System::DISK = new NonBlockingDisk(System::DISK_SIZE);
+#else
+	// SimpleDisk uses busy-waiting (blocks CPU during disk operations).
+	System::DISK = new SimpleDisk(System::DISK_SIZE);
 #endif
 
 	/* -- ENABLE INTERRUPTS -- */
