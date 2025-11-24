@@ -136,13 +136,6 @@ void Scheduler::add(Thread * _thread) {
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  /* Remove the given thread from the scheduler's ready queue.
-   * This is called in preparation for thread destruction.
-   * 
-   * We need to handle two cases:
-   * 1. Thread is in the ready queue - remove it
-   * 2. Thread is currently running (self-termination) - just remove from queue if present
-   */
   
   if (_thread == nullptr) {
     return;  /* Safety check */

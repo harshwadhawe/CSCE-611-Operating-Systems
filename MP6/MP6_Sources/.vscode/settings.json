@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "simple_disk.C": "cpp",
+        "scheduler.C": "cpp",
+        "nonblocking_disk.C": "cpp"
+    }
+}
