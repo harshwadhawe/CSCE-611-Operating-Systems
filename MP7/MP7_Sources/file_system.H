@@ -44,14 +44,12 @@ class Inode
 
 private:
 	long id; // File "name"
+	static constexpr unsigned int MAX_BLOCKS = 128; // Maximum blocks per file (64kB = 128 * 512)
+	unsigned int block_numbers_block; // Block number storing the array of data block numbers (0 = invalid)
+	unsigned int num_blocks; // Number of blocks currently allocated
+	unsigned int file_length; // Current file size in bytes (0-65536)
 
-	/* You will need additional information in the inode, such as allocation
-	   information. */
-
-	FileSystem* fs; // It may be handy to have a pointer to the File system.
-	// For example when you need a new block or when you want
-	// to load or save the inode list. (Depends on your
-	// implementation.)
+	FileSystem* fs; // Pointer to the File system
 
 /* You may need a few additional functions to help read and store the
    inodes from and to disk. */
@@ -71,6 +69,7 @@ class FileSystem
 {
 
 	friend class Inode;
+	friend class File;
 
 private:
 	/* -- DEFINE YOUR FILE SYSTEM DATA STRUCTURES HERE. */
@@ -79,7 +78,7 @@ private:
 	unsigned int size;
 
 	static constexpr unsigned int MAX_INODES = SimpleDisk::BLOCK_SIZE / sizeof(Inode);
-	/* Just as an example; you can store MAX_INODES in a single INODES block */
+	/* Inode uses indirect blocks, so it stays small enough to fit multiple inodes per block */
 
 	Inode* inodes; 
 	/* The inode list */
@@ -91,12 +90,13 @@ private:
 	   If you reserve one block to store the "free list", you can handle a file system up to
 	   256kB. (Large enough for a proof of concept.) */
 
-	   // short GetFreeInode();
-	   // int GetFreeBlock();
-	   /* It may be helpful to two functions to hand out free inodes in the inode list and free
-		  blocks. These functions also come useful to class Inode and File. */
+	short GetFreeInode();
+	int GetFreeBlock();
+	int GetFreeBlocks(unsigned int count, unsigned int* blocks);
+	void SaveFreeList();
 
 public:
+	void SaveInodes(); // Public so File can call it when closing
 	FileSystem();
 	/* Just initializes local data structures. Does not connect to disk yet. */
 
